@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, Request
 from fastapi.middleware.cors import CORSMiddleware
 import json
 import os
@@ -6,12 +6,36 @@ import math
 
 app = FastAPI()
 
+# Standard CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["POST"],
+    allow_credentials=False,
+    allow_methods=["POST", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Force CORS headers on every response
+@app.middleware("http")
+async def add_cors_headers(request: Request, call_next):
+    response = await call_next(request)
+
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+
+    return response
+
+# Handle preflight requests
+@app.options("/{path:path}")
+async def options_handler(path: str):
+    response = Response(status_code=200)
+
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+
+    return response
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -36,6 +60,10 @@ def percentile95(values):
     frac = rank - lower
     return values[lower] + frac * (values[upper] - values[lower])
 
+@app.get("/")
+async def health():
+    return {"status": "ok"}
+
 @app.post("/")
 async def metrics(payload: dict):
 
@@ -46,6 +74,15 @@ async def metrics(payload: dict):
 
     for region in regions:
         rows = [r for r in DATA if r["region"] == region]
+
+        if not rows:
+            result[region] = {
+                "avg_latency": 0,
+                "p95_latency": 0,
+                "avg_uptime": 0,
+                "breaches": 0
+            }
+            continue
 
         latencies = [r["latency_ms"] for r in rows]
         uptimes = [r["uptime_pct"] for r in rows]
