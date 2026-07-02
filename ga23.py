@@ -22,7 +22,7 @@ DEFAULTS = {
     "port": 8000,
     "workers": 12,
     "debug": False,
-    "log_level": "info",
+    "log_level": "warning",
     "api_key": "default-secret-000",
 }
 
