@@ -23,4 +23,4 @@ jobs:
 
       - run: npx playwright install chromium
 
-      - run: node sum_tables.js
+      - run: node sum_table.js
