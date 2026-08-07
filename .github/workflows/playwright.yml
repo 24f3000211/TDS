@@ -9,13 +9,15 @@ jobs:
 
     steps:
       - name: 24f3000211@ds.study.iitm.ac.in
-        run: echo "Starting"
+        run: echo "Start"
 
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+
+      - run: npm init -y
 
       - run: npm install playwright
 
