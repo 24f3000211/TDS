@@ -1,12 +1,11 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    }
+    {"src": "api/index.py", "use": "@vercel/python"},
+    {"src": "api/release_gate.py", "use": "@vercel/python"}
   ],
   "routes": [
+    {"src": "/release-gate", "dest": "api/release_gate.py"},
     {
       "src": "/(.*)",
       "dest": "api/index.py",
